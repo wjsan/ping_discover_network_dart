@@ -47,14 +47,15 @@ class NetworkAnalyzer {
         if (!(e is SocketException)) {
           rethrow;
         }
-
-        // Check if connection timed out or we got one of predefined errors
-        if (e.osError == null || _errorCodes.contains(e.osError?.errorCode)) {
-          yield NetworkAddress(host, false);
-        } else {
-          // Error 23,24: Too many open files in system
-          rethrow;
-        }
+        yield NetworkAddress(host, false);
+        
+        // // Check if connection timed out or we got one of predefined errors
+        // if (e.osError == null || _errorCodes.contains(e.osError?.errorCode)) {
+        //   yield NetworkAddress(host, false);
+        // } else {
+        //   // Error 23,24: Too many open files in system
+        //   rethrow;
+        // }
       }
     }
   }
@@ -87,14 +88,15 @@ class NetworkAnalyzer {
         if (!(e is SocketException)) {
           throw e;
         }
+        out.sink.add(NetworkAddress(host, false));
 
-        // Check if connection timed out or we got one of predefined errors
-        if (e.osError == null) {
-          out.sink.add(NetworkAddress(host, false));
-        } else {
-          // Error 23,24: Too many open files in system
-          throw e;
-        }
+        // // Check if connection timed out or we got one of predefined errors
+        // if (e.osError == null || _errorCodes.contains(e.osError)) {
+        //   out.sink.add(NetworkAddress(host, false));
+        // } else {
+        //   // Error 23,24: Too many open files in system
+        //   throw e;
+        // }
       });
     }
 
@@ -130,5 +132,5 @@ class NetworkAnalyzer {
   // 111: Connection refused
   // 113: No route to host
   // <empty>: SocketException: Connection timed out
-  static final _errorCodes = [13, 49, 61, 64, 65, 101, 111, 113];
+  // static final _errorCodes = [13, 49, 61, 64, 65, 101, 111, 113];
 }
