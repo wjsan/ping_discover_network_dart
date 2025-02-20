@@ -19,6 +19,8 @@ class NetworkAddress {
 
 /// Pings a given subnet (xxx.xxx.xxx) on a given port using [discover] method.
 class NetworkAnalyzer {
+  NetworkAnalyzer._();
+
   /// Pings a given [subnet] (xxx.xxx.xxx) on a given [port].
   ///
   /// Pings IP:PORT one by one
@@ -30,7 +32,9 @@ class NetworkAnalyzer {
     if (port < 1 || port > 65535) {
       throw 'Incorrect port';
     }
-    // TODO : validate subnet
+    if (!_isSubnet(subnet)) {
+      throw 'Invalid subnet';
+    }
 
     for (int i = 1; i < 256; ++i) {
       final host = '$subnet.$i';
@@ -45,7 +49,7 @@ class NetworkAnalyzer {
         }
 
         // Check if connection timed out or we got one of predefined errors
-        if (e.osError == null || _errorCodes.contains(e.osError.errorCode)) {
+        if (e.osError == null || _errorCodes.contains(e.osError?.errorCode)) {
           yield NetworkAddress(host, false);
         } else {
           // Error 23,24: Too many open files in system
@@ -66,7 +70,9 @@ class NetworkAnalyzer {
     if (port < 1 || port > 65535) {
       throw 'Incorrect port';
     }
-    // TODO : validate subnet
+    if (!_isSubnet(subnet)) {
+      throw 'Invalid subnet';
+    }
 
     final out = StreamController<NetworkAddress>();
     final futures = <Future<Socket>>[];
@@ -83,7 +89,7 @@ class NetworkAnalyzer {
         }
 
         // Check if connection timed out or we got one of predefined errors
-        if (e.osError == null || _errorCodes.contains(e.osError.errorCode)) {
+        if (e.osError == null) {
           out.sink.add(NetworkAddress(host, false));
         } else {
           // Error 23,24: Too many open files in system
@@ -103,6 +109,16 @@ class NetworkAnalyzer {
     return Socket.connect(host, port, timeout: timeout).then((socket) {
       return socket;
     });
+  }
+
+  static bool _isSubnet(String input) {
+    return _isIPAddress(input + '.0');
+  }
+
+  static bool _isIPAddress(String input) {
+    final RegExp ipv4Regex = RegExp(
+        r'^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$');
+    return ipv4Regex.hasMatch(input);
   }
 
   // 13: Connection failed (OS Error: Permission denied)
